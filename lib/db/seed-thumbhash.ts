@@ -1,7 +1,6 @@
 import path from 'path';
 import { sql } from './drizzle';
-import { NeonQueryFunction } from '@neondatabase/serverless';
-import { processEntities } from './seed-utils';
+import { processEntities, SqlQueryFunction } from './seed-utils';
 import sharp from 'sharp';
 import * as ThumbHash from 'thumbhash';
 import { EMPTY_IMAGE_URL } from './queries';
@@ -69,7 +68,7 @@ async function processBook(book: BookData): Promise<[string, string] | null> {
 
 async function batchUpdateThumbHash(
   batch: BookData[],
-  sqlQuery: NeonQueryFunction<false, false>
+  sqlQuery: SqlQueryFunction
 ) {
   const updateThumbhashQuery = `
     UPDATE books
@@ -81,13 +80,15 @@ async function batchUpdateThumbHash(
     batch.map((book) => limit(() => processBook(book)))
   );
 
-  const queries = processedBooks
+  const updates = processedBooks
     .filter((result): result is [string, string] => result !== null)
-    .map(([thumbHash, imageUrl]) =>
-      sqlQuery(updateThumbhashQuery, [thumbHash, imageUrl])
-    );
+    .map(([thumbHash, imageUrl]) => [thumbHash, imageUrl] as const);
 
-  return sqlQuery.transaction((tx) => queries);
+  return sqlQuery.transaction((tx: any) => {
+    return updates.map(([thumbHash, imageUrl]) =>
+      tx(updateThumbhashQuery, [thumbHash, imageUrl])
+    );
+  });
 }
 
 async function main() {

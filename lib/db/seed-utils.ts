@@ -1,6 +1,11 @@
 import fs from 'fs';
 import readline from 'readline';
-import { NeonQueryFunction } from '@neondatabase/serverless';
+
+export type SqlQueryFunction = ((
+  ...args: any[]
+) => any) & {
+  transaction: (...args: any[]) => Promise<any>;
+};
 
 export async function saveCheckpoint(
   checkpointFile: string,
@@ -26,11 +31,8 @@ export async function processEntities<T>(
   filePath: string,
   checkpointFile: string,
   batchSize: number,
-  batchInsertFunction: (
-    batch: T[],
-    sqlQuery: NeonQueryFunction<false, false>
-  ) => Promise<any>,
-  sqlQuery: NeonQueryFunction<false, false>,
+  batchInsertFunction: (batch: T[], sqlQuery: SqlQueryFunction) => Promise<any>,
+  sqlQuery: SqlQueryFunction,
   totalEntities: number
 ): Promise<number> {
   const startLine = await loadCheckpoint(checkpointFile);

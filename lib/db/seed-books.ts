@@ -1,7 +1,6 @@
 import path from 'path';
 import { sql } from './drizzle';
-import { NeonQueryFunction } from '@neondatabase/serverless';
-import { processEntities } from './seed-utils';
+import { processEntities, SqlQueryFunction } from './seed-utils';
 
 const BATCH_SIZE = 900;
 const CHECKPOINT_FILE = 'book_import_checkpoint.json';
@@ -29,7 +28,7 @@ interface BookData {
 
 async function batchInsertBooks(
   batch: BookData[],
-  sqlQuery: NeonQueryFunction<false, false>
+  sqlQuery: SqlQueryFunction
 ) {
   const insertBookAndAuthorsQuery = `
     WITH inserted_book AS (
@@ -45,7 +44,7 @@ async function batchInsertBooks(
     ON CONFLICT DO NOTHING
   `;
 
-  return sqlQuery.transaction((tx) => {
+  return sqlQuery.transaction((tx: any) => {
     return batch.map((book) =>
       tx(insertBookAndAuthorsQuery, [
         book.isbn || null,
@@ -71,7 +70,7 @@ async function batchInsertBooks(
 async function main() {
   try {
     const bookCount = await processEntities<BookData>(
-      path.resolve('./lib/db/books-full.json'),
+      path.resolve('./lib/db/books.json'),
       CHECKPOINT_FILE,
       BATCH_SIZE,
       batchInsertBooks,

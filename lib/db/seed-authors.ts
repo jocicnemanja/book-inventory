@@ -1,7 +1,6 @@
 import path from 'path';
 import { sql } from './drizzle';
-import { NeonQueryFunction } from '@neondatabase/serverless';
-import { processEntities } from './seed-utils';
+import { processEntities, SqlQueryFunction } from './seed-utils';
 
 const BATCH_SIZE = 2000;
 const CHECKPOINT_FILE = 'author_import_checkpoint.json';
@@ -19,7 +18,7 @@ interface AuthorData {
 
 async function batchInsertAuthors(
   batch: AuthorData[],
-  sqlQuery: NeonQueryFunction<false, false>
+  sqlQuery: SqlQueryFunction
 ) {
   const insertQuery = `
     INSERT INTO authors (id, name, average_rating, text_reviews_count, ratings_count)
@@ -27,23 +26,23 @@ async function batchInsertAuthors(
     ON CONFLICT (id) DO NOTHING
   `;
 
-  const queries = batch.map((author) =>
-    sqlQuery(insertQuery, [
-      author.author_id,
-      author.name,
-      author.average_rating,
-      author.text_reviews_count,
-      author.ratings_count,
-    ])
-  );
-
-  await sql.transaction(queries);
+  await sqlQuery.transaction((tx: any) => {
+    return batch.map((author) =>
+      tx(insertQuery, [
+        author.author_id,
+        author.name,
+        author.average_rating,
+        author.text_reviews_count,
+        author.ratings_count,
+      ])
+    );
+  });
 }
 
 async function main() {
   try {
     const authorCount = await processEntities<AuthorData>(
-      path.resolve('./lib/db/authors-full.json'),
+      path.resolve('./lib/db/authors.json'),
       CHECKPOINT_FILE,
       BATCH_SIZE,
       batchInsertAuthors,

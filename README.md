@@ -13,6 +13,24 @@ CREATE EXTENSION IF NOT EXISTS unaccent;
 CREATE EXTENSION IF NOT EXISTS vector;
 ```
 
+## Local Environment
+
+Create a local env file and set your database URL:
+
+```bash
+# macOS/Linux
+cp .env.example .env.local
+
+# Windows (PowerShell)
+Copy-Item .env.example .env.local
+```
+
+Then edit `.env.local` and set:
+
+```bash
+POSTGRES_URL="postgresql://username:password@host:5432/database?sslmode=require"
+```
+
 ## Deploy on Vercel
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/templates/next.js/next-book-inventory)

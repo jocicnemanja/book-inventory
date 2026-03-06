@@ -1,7 +1,5 @@
 export default {
-  experimental: {
-    ppr: true,
-  },
+  cacheComponents: true,
   logging: {
     fetches: {
       fullUrl: true,
