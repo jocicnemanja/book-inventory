@@ -51,7 +51,7 @@ export default async function Page(
   return (
     <ScrollArea className="px-4 h-full">
       <Button variant="ghost" className="mb-4" asChild>
-        <Link href={`/?${stringifySearchParams(searchParams)}`}>
+        <Link href={`/books?${stringifySearchParams(searchParams)}`}>
           <ArrowLeftIcon className="mr-2 h-4 w-4" /> Back to Books
         </Link>
       </Button>

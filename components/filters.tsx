@@ -63,7 +63,7 @@ function FilterBase({ searchParams }: FilterProps) {
 
   const updateURL = (newFilters: SearchParams) => {
     const queryString = stringifySearchParams(newFilters);
-    router.push(queryString ? `/?${queryString}` : '/');
+    router.push(queryString ? `/books?${queryString}` : '/books');
   };
 
   const handleFilterChange = (
@@ -98,7 +98,7 @@ function FilterBase({ searchParams }: FilterProps) {
   const handleClearFilters = () => {
     startTransition(() => {
       setOptimisticFilters({});
-      router.push('/');
+      router.push('/books');
     });
   };
 

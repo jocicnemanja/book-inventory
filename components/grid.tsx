@@ -48,7 +48,7 @@ function BookLink({
 
   return (
     <Link
-      href={`/${book.id}?${stringifySearchParams(searchParams)}`}
+      href={`/books/${book.id}?${stringifySearchParams(searchParams)}`}
       key={book.id}
       className="block transition ease-in-out md:hover:scale-105"
       prefetch={noFilters ? true : null}

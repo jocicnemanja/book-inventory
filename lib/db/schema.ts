@@ -9,6 +9,7 @@ import {
   vector,
   primaryKey,
   index,
+  boolean,
 } from 'drizzle-orm/pg-core';
 import { relations, sql } from 'drizzle-orm';
 
@@ -106,3 +107,59 @@ export const bookToAuthorRelations = relations(bookToAuthor, ({ one }) => ({
     references: [authors.id],
   }),
 }));
+
+// ── Popular Series (curated from Goodreads Best Series list) ──
+
+export const popularSeries = pgTable('popular_series', {
+  id: serial('id').primaryKey(),
+  rank: integer('rank').notNull(),
+  series_name: text('series_name').notNull(),
+  series_name_de: text('series_name_de'),
+  author: text('author').notNull(),
+  goodreads_score: integer('goodreads_score'),
+  goodreads_url: text('goodreads_url'),
+  avg_rating: decimal('avg_rating', { precision: 3, scale: 2 }),
+  total_books_en: integer('total_books_en'),
+  total_books_de: integer('total_books_de'),
+});
+
+export const popularSeriesBooks = pgTable(
+  'popular_series_books',
+  {
+    id: serial('id').primaryKey(),
+    series_id: integer('series_id')
+      .notNull()
+      .references(() => popularSeries.id, { onDelete: 'cascade' }),
+    volume: integer('volume').notNull(),
+    title_en: text('title_en').notNull(),
+    title_de: text('title_de'),
+    year_us: integer('year_us'),
+    year_dach: integer('year_dach'),
+    is_dach_split: boolean('is_dach_split').default(false).notNull(),
+    dach_split_part: text('dach_split_part'),
+    goodreads_url: text('goodreads_url'),
+    isbn_us: text('isbn_us'),
+    isbn_dach: text('isbn_dach'),
+  },
+  (table) => ({
+    seriesIdIdx: index('idx_popular_series_books_series_id').on(table.series_id),
+    volumeIdx: index('idx_popular_series_books_volume').on(table.volume),
+  })
+);
+
+export const popularSeriesRelations = relations(popularSeries, ({ many }) => ({
+  books: many(popularSeriesBooks),
+}));
+
+export const popularSeriesBooksRelations = relations(
+  popularSeriesBooks,
+  ({ one }) => ({
+    series: one(popularSeries, {
+      fields: [popularSeriesBooks.series_id],
+      references: [popularSeries.id],
+    }),
+  })
+);
+
+export type PopularSeries = typeof popularSeries.$inferSelect;
+export type PopularSeriesBook = typeof popularSeriesBooks.$inferSelect;

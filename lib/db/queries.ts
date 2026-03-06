@@ -1,6 +1,12 @@
-import { sql, and, gte, eq, lte, not, isNull } from 'drizzle-orm';
+import { sql, and, gte, eq, lte, not, isNull, desc, asc } from 'drizzle-orm';
 import { db } from './drizzle';
-import { books, authors, bookToAuthor } from './schema';
+import {
+  books,
+  authors,
+  bookToAuthor,
+  popularSeries,
+  popularSeriesBooks,
+} from './schema';
 import { SearchParams } from '@/lib/url-state';
 
 export const ITEMS_PER_PAGE = 28;
@@ -156,4 +162,114 @@ export async function fetchBookById(id: string) {
     .limit(1);
 
   return result[0];
+}
+
+export async function fetchPopularSeries(limit = 50) {
+  const result = await db.execute(sql`
+    SELECT
+      series_name,
+      COUNT(*)::int AS book_count,
+      ROUND(AVG(average_rating::numeric), 2) AS avg_rating,
+      SUM(ratings_count)::bigint AS total_ratings
+    FROM books, unnest(series) AS series_name
+    WHERE series IS NOT NULL
+      AND array_length(series, 1) > 0
+    GROUP BY series_name
+    ORDER BY total_ratings DESC
+    LIMIT ${limit}
+  `);
+
+  return result as unknown as {
+    series_name: string;
+    book_count: number;
+    avg_rating: string;
+    total_ratings: string;
+  }[];
+}
+
+export async function fetchPopularAuthors(limit = 50) {
+  const result = await db
+    .select({
+      id: authors.id,
+      name: authors.name,
+      average_rating: authors.average_rating,
+      ratings_count: authors.ratings_count,
+      text_reviews_count: authors.text_reviews_count,
+    })
+    .from(authors)
+    .where(
+      and(
+        not(isNull(authors.ratings_count)),
+        sql`${authors.ratings_count} > 0`
+      )
+    )
+    .orderBy(desc(authors.ratings_count))
+    .limit(limit);
+
+  return result;
+}
+
+// ── Curated Popular Series (from popular_series / popular_series_books tables) ──
+
+export async function fetchCuratedPopularSeries(limit = 50) {
+  const seriesList = await db
+    .select()
+    .from(popularSeries)
+    .orderBy(asc(popularSeries.rank))
+    .limit(limit);
+
+  return seriesList;
+}
+
+export async function fetchCuratedSeriesWithBooks(limit = 50) {
+  const seriesList = await db
+    .select()
+    .from(popularSeries)
+    .orderBy(asc(popularSeries.rank))
+    .limit(limit);
+
+  const seriesIds = seriesList.map((s) => s.id);
+
+  if (seriesIds.length === 0) return [];
+
+  const allBooks = await db
+    .select()
+    .from(popularSeriesBooks)
+    .where(
+      sql`${popularSeriesBooks.series_id} IN (${sql.join(
+        seriesIds.map((id) => sql`${id}`),
+        sql`, `
+      )})`
+    )
+    .orderBy(asc(popularSeriesBooks.volume));
+
+  const booksBySeries = new Map<number, typeof allBooks>();
+  for (const book of allBooks) {
+    const existing = booksBySeries.get(book.series_id) ?? [];
+    existing.push(book);
+    booksBySeries.set(book.series_id, existing);
+  }
+
+  return seriesList.map((series) => ({
+    ...series,
+    books: booksBySeries.get(series.id) ?? [],
+  }));
+}
+
+export async function fetchCuratedSeriesById(seriesId: number) {
+  const [series] = await db
+    .select()
+    .from(popularSeries)
+    .where(eq(popularSeries.id, seriesId))
+    .limit(1);
+
+  if (!series) return null;
+
+  const seriesBooks = await db
+    .select()
+    .from(popularSeriesBooks)
+    .where(eq(popularSeriesBooks.series_id, seriesId))
+    .orderBy(asc(popularSeriesBooks.volume));
+
+  return { ...series, books: seriesBooks };
 }

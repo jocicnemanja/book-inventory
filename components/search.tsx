@@ -15,7 +15,7 @@ function SearchBase({ initialQuery }: { initialQuery: string }) {
 
   async function handleSubmit(formData: FormData) {
     let query = formData.get('search') as string;
-    let newUrl = `/?search=${encodeURIComponent(query)}`;
+    let newUrl = `/books?search=${encodeURIComponent(query)}`;
     await triggerUpdate(newUrl);
   }
 

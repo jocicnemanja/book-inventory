@@ -52,7 +52,7 @@ export function BookPagination({
     <Pagination>
       <PaginationContent className="flex items-center justify-between">
         <PaginationItem>
-          <Form action="/">
+          <Form action="/books">
             <FormValues
               searchParams={searchParams}
               pageNumber={Math.max(1, currentPage - 1)}
@@ -74,7 +74,7 @@ export function BookPagination({
         </div>
 
         <PaginationItem>
-          <Form action="/">
+          <Form action="/books">
             <FormValues
               searchParams={searchParams}
               pageNumber={Math.min(totalPages, currentPage + 1)}
