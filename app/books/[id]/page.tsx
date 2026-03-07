@@ -59,11 +59,20 @@ function getLanguageLabel(code: string | null): string {
 
 // Prerender the first page of books
 export async function generateStaticParams() {
-  const books = await fetchBooksWithPagination({});
+  try {
+    const books = await fetchBooksWithPagination({});
 
-  return books.map((books) => ({
-    id: books.id.toString(),
-  }));
+    if (books.length > 0) {
+      return books.map((book) => ({
+        id: book.id.toString(),
+      }));
+    }
+  } catch {
+    // Database may not be available at build time
+  }
+
+  // Must return at least one entry for build-time validation
+  return [{ id: '1' }];
 }
 
 export default async function Page(
