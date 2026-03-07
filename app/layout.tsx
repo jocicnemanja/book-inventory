@@ -1,13 +1,21 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import { GeistSans } from 'geist/font/sans';
+import { Lora } from 'next/font/google';
 import { Toaster } from 'sonner';
 import { WelcomeToast } from '@/components/welcome-toast';
 import { cn } from '@/lib/utils';
 
+const lora = Lora({
+  subsets: ['latin'],
+  variable: '--font-lora',
+  display: 'swap',
+});
+
 export const metadata: Metadata = {
-  title: 'Book Inventory — Next.js App Router',
-  description: 'View 2 million books from Goodreads.',
+  title: 'Buchinventar — Beliebte Buchreihen & Autoren',
+  description:
+    'Entdecke über 2 Millionen Bücher – die beliebtesten Buchreihen und Autoren auf einen Blick.',
 };
 
 export default function RootLayout({
@@ -16,11 +24,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="de">
       <body
         className={cn(
-          'bg-gray-100 font-sans antialiased dark:bg-black dark:text-white',
-          GeistSans.variable
+          'bg-background font-sans antialiased',
+          GeistSans.variable,
+          lora.variable
         )}
       >
         {children}

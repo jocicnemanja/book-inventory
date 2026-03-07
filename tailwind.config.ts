@@ -15,6 +15,7 @@ export default {
     extend: {
       fontFamily: {
         sans: ['var(--font-geist-sans)', ...fontFamily.sans],
+        serif: ['var(--font-lora)', ...fontFamily.serif],
       },
       colors: {
         border: 'hsl(var(--border))',

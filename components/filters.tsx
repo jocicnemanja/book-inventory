@@ -186,7 +186,8 @@ function FilterBase({ searchParams }: FilterProps) {
             </div>
           </div>
 
-          <div>
+          {/* Hidden for MVP */}
+          {/* <div>
             <Label>Book Lists</Label>
             <ScrollArea className="h-[200px] mt-2">
               {LISTS.map((list) => (
@@ -208,7 +209,7 @@ function FilterBase({ searchParams }: FilterProps) {
                 </div>
               ))}
             </ScrollArea>
-          </div>
+          </div> */}
         </div>
       </ScrollArea>
 
