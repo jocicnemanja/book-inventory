@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { BooksGrid } from '@/components/grid';
 import { BookPagination } from '@/components/book-pagination';
@@ -7,6 +8,12 @@ import {
   ITEMS_PER_PAGE,
 } from '@/lib/db/queries';
 import { parseSearchParams } from '@/lib/url-state';
+
+export const metadata: Metadata = {
+  title: 'Bücher online durchsuchen — Fantasy, Sci-Fi & Klassiker',
+  description:
+    'Bücher online durchsuchen und filtern: Fantasy, Sci-Fi, Klassiker und mehr. Buch Bewertung, Seitenzahl und Sprache auf einen Blick.',
+};
 
 export default async function BooksPage(
   props: {

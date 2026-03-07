@@ -13,9 +13,32 @@ const lora = Lora({
 });
 
 export const metadata: Metadata = {
-  title: 'Buchinventar — Beliebte Buchreihen & Autoren',
+  title: {
+    default: 'Buchinventar — Buchempfehlung & Bestseller Bücher 2026 | Beliebte Reihen & Autoren',
+    template: '%s | Buchinventar',
+  },
   description:
-    'Entdecke über 2 Millionen Bücher – die beliebtesten Buchreihen und Autoren auf einen Blick.',
+    'Buchempfehlung & Bestseller Bücher 2026: Entdecke über 2 Millionen Bücher, beliebte Buchreihen, Buchreihenfolge und Top-Autoren auf einen Blick.',
+  keywords: [
+    'Buchempfehlung',
+    'Bestseller Bücher',
+    'Bücher online',
+    'Buchreihen',
+    'Buchreihenfolge',
+    'Buch Bewertung',
+    'neue Bücher 2026',
+    'Fantasy Bücher',
+    'Sci-Fi Bücher',
+    'Buchinventar',
+  ],
+  openGraph: {
+    title: 'Buchinventar — Buchempfehlung & Bestseller Bücher 2026',
+    description:
+      'Entdecke über 2 Millionen Bücher — Buchreihen, Bewertungen und Top-Autoren.',
+    siteName: 'Buchinventar',
+    locale: 'de_DE',
+    type: 'website',
+  },
 };
 
 export default function RootLayout({

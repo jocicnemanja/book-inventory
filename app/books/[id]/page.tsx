@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import {
   StarIcon,
   BookOpenIcon,
@@ -11,6 +12,33 @@ import { Photo } from '@/components/photo';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import Link from 'next/link';
 import { SearchParams, stringifySearchParams } from '@/lib/url-state';
+
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://buchinventar.de';
+
+export async function generateMetadata(
+  { params }: { params: Promise<{ id: string }> }
+): Promise<Metadata> {
+  const { id } = await params;
+  const book = await fetchBookById(id);
+  const authorStr = book.authors?.filter(Boolean).join(', ') || 'Unbekannt';
+  const desc = book.description
+    ? book.description.slice(0, 155).replace(/\s+\S*$/, '') + '…'
+    : `Entdecke „${book.title}" von ${authorStr} — Bewertung, Seitenzahl & mehr.`;
+
+  return {
+    title: `„${book.title}" von ${authorStr} — Bewertung`,
+    description: desc,
+    openGraph: {
+      title: `${book.title} — ${authorStr}`,
+      description: desc,
+      url: `${BASE_URL}/books/${id}`,
+      siteName: 'Buchinventar',
+      locale: 'de_DE',
+      type: 'article',
+      ...(book.image_url ? { images: [{ url: book.image_url, alt: book.title }] } : {}),
+    },
+  };
+}
 
 const LANGUAGES = [
   { value: 'en', label: 'English' },
@@ -48,8 +76,39 @@ export default async function Page(
   const params = await props.params;
   const book = await fetchBookById(params.id);
 
+  // JSON-LD structured data (schema.org/Book)
+  const authorStr = book.authors?.filter(Boolean).join(', ') || 'Unbekannt';
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Book',
+    name: book.title,
+    author: {
+      '@type': 'Person',
+      name: authorStr,
+    },
+    ...(book.isbn ? { isbn: book.isbn } : {}),
+    ...(book.num_pages ? { numberOfPages: book.num_pages } : {}),
+    ...(book.language_code ? { inLanguage: book.language_code } : {}),
+    ...(book.image_url ? { image: book.image_url } : {}),
+    ...(book.publication_year ? { datePublished: String(book.publication_year) } : {}),
+    ...(book.average_rating
+      ? {
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: book.average_rating,
+            bestRating: '5',
+            ratingCount: book.ratings_count ?? 0,
+          },
+        }
+      : {}),
+  };
+
   return (
     <ScrollArea className="px-4 h-full">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <Button variant="ghost" className="mb-4" asChild>
         <Link href={`/books?${stringifySearchParams(searchParams)}`}>
           <ArrowLeftIcon className="mr-2 h-4 w-4" /> Back to Books
