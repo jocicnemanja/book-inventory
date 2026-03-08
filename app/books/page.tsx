@@ -10,9 +10,17 @@ import {
 import { parseSearchParams } from '@/lib/url-state';
 
 export const metadata: Metadata = {
-  title: 'Bücher online durchsuchen — Fantasy, Sci-Fi & Klassiker',
+  title: 'Bücher online durchsuchen — Reihenfolge, Bewertung & Filter',
   description:
-    'Bücher online durchsuchen und filtern: Fantasy, Sci-Fi, Klassiker und mehr. Buch Bewertung, Seitenzahl und Sprache auf einen Blick.',
+    'Über 2 Millionen Bücher durchsuchen und filtern: Finde Bücher nach Autor, Genre, Bewertung und Sprache. Fantasy, Krimi, Thriller, Sci-Fi und Klassiker — mit Buchreihenfolge auf einen Blick.',
+  openGraph: {
+    title: 'Bücher durchsuchen | Buchinventar',
+    description:
+      'Bücher nach Autor, Genre und Bewertung suchen. Buchreihen in der richtigen Reihenfolge entdecken.',
+    type: 'website',
+    locale: 'de_DE',
+    siteName: 'Buchinventar',
+  },
 };
 
 export default async function BooksPage(

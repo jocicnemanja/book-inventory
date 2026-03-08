@@ -12,12 +12,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 1.0,
+      alternates: { languages: { 'de-DE': BASE_URL } },
     },
     {
       url: `${BASE_URL}/books`,
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 0.9,
+      alternates: { languages: { 'de-DE': `${BASE_URL}/books` } },
     },
   ];
 

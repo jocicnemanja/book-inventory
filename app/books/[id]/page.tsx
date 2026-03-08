@@ -26,10 +26,13 @@ export async function generateMetadata(
     : `Entdecke „${book.title}" von ${authorStr} — Bewertung, Seitenzahl & mehr.`;
 
   return {
-    title: `„${book.title}" von ${authorStr} — Bewertung`,
+    title: `„${book.title}" von ${authorStr} — Bewertung & Reihenfolge`,
     description: desc,
+    alternates: {
+      canonical: `${BASE_URL}/books/${id}`,
+    },
     openGraph: {
-      title: `${book.title} — ${authorStr}`,
+      title: `${book.title} — ${authorStr} | Buchinventar`,
       description: desc,
       url: `${BASE_URL}/books/${id}`,
       siteName: 'Buchinventar',
@@ -91,14 +94,15 @@ export default async function Page(
     '@context': 'https://schema.org',
     '@type': 'Book',
     name: book.title,
-    author: {
+    author: (book.authors || []).filter(Boolean).map((a) => ({
       '@type': 'Person',
-      name: authorStr,
-    },
+      name: a,
+    })),
     ...(book.isbn ? { isbn: book.isbn } : {}),
     ...(book.num_pages ? { numberOfPages: book.num_pages } : {}),
     ...(book.language_code ? { inLanguage: book.language_code } : {}),
     ...(book.image_url ? { image: book.image_url } : {}),
+    ...(book.publisher ? { publisher: { '@type': 'Organization', name: book.publisher } } : {}),
     ...(book.publication_year ? { datePublished: String(book.publication_year) } : {}),
     ...(book.average_rating
       ? {
@@ -111,6 +115,15 @@ export default async function Page(
         }
       : {}),
   };
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Startseite', item: BASE_URL },
+      { '@type': 'ListItem', position: 2, name: 'Bücher', item: `${BASE_URL}/books` },
+      { '@type': 'ListItem', position: 3, name: book.title, item: `${BASE_URL}/books/${params.id}` },
+    ],
+  };
 
   return (
     <ScrollArea className="px-4 h-full">
@@ -118,9 +131,23 @@ export default async function Page(
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+
+      {/* Breadcrumb-Navigation */}
+      <nav aria-label="Brotkrumen" className="text-xs text-muted-foreground mb-3 flex items-center gap-1">
+        <Link href="/" className="hover:text-foreground">Startseite</Link>
+        <span>/</span>
+        <Link href="/books" className="hover:text-foreground">Bücher</Link>
+        <span>/</span>
+        <span className="text-foreground truncate max-w-[200px]">{book.title}</span>
+      </nav>
+
       <Button variant="ghost" className="mb-4" asChild>
         <Link href={`/books?${stringifySearchParams(searchParams)}`}>
-          <ArrowLeftIcon className="mr-2 h-4 w-4" /> Back to Books
+          <ArrowLeftIcon className="mr-2 h-4 w-4" /> Zurück zur Übersicht
         </Link>
       </Button>
 
@@ -151,7 +178,7 @@ export default async function Page(
               {Number(book.average_rating).toFixed(1)}
             </span>
             <span className="text-gray-600 ml-2">
-              ({Number(book.ratings_count).toLocaleString()} ratings)
+              ({Number(book.ratings_count).toLocaleString('de-DE')} Bewertungen)
             </span>
           </div>
 
@@ -160,7 +187,7 @@ export default async function Page(
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div className="flex items-center">
               <BookOpenIcon className="w-5 h-5 mr-2 text-gray-600" />
-              <span>{book.num_pages} pages</span>
+              <span>{book.num_pages} Seiten</span>
             </div>
             <div className="flex items-center">
               <GlobeIcon className="w-5 h-5 mr-2 text-gray-600" />
@@ -171,7 +198,7 @@ export default async function Page(
               <span>{book.publication_year}</span>
             </div>
             <div className="flex items-center">
-              <span>ISBN: {book.isbn || 'None'}</span>
+              <span>ISBN: {book.isbn || 'Keine Angabe'}</span>
             </div>
           </div>
         </div>

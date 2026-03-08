@@ -9,7 +9,12 @@ import {
   SplitIcon,
   GlobeIcon,
   ArrowRightIcon,
+  SearchIcon,
+  LibraryIcon,
+  TrendingUpIcon,
 } from 'lucide-react';
+
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://buchinventar.de';
 
 // Top 50 Autoren – statisch vorgerendert
 const POPULAR_AUTHORS = [
@@ -66,8 +71,62 @@ const POPULAR_AUTHORS = [
 ];
 
 export default function HomePage() {
+  // JSON-LD: WebSite + Organization (structured data for Google)
+  const websiteJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'Buchinventar',
+    alternateName: 'Buchinventar.de',
+    url: BASE_URL,
+    description:
+      'Alle Bücher in der richtigen Reihenfolge: Buchreihen, Autoren, Bewertungen und Empfehlungen für den deutschsprachigen Raum.',
+    inLanguage: 'de-DE',
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: {
+        '@type': 'EntryPoint',
+        urlTemplate: `${BASE_URL}/books?search={search_term_string}`,
+      },
+      'query-input': 'required name=search_term_string',
+    },
+  };
+  const orgJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'Buchinventar',
+    url: BASE_URL,
+    logo: `${BASE_URL}/icon.png`,
+    sameAs: [],
+  };
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Startseite',
+        item: BASE_URL,
+      },
+    ],
+  };
+
   return (
     <div className="min-h-screen">
+      {/* Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+
       {/* Kopfzeile */}
       <header className="border-b border-border/60 bg-card">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -77,19 +136,56 @@ export default function HomePage() {
                 Buchinventar
               </h1>
               <span className="hidden sm:inline text-sm text-muted-foreground border-l border-border pl-3">
-                Beliebte Reihen &amp; Autoren
+                Bücher in der richtigen Reihenfolge
               </span>
             </div>
-            <Link
-              href="/books"
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline underline-offset-4 transition-colors"
-            >
-              Katalog durchsuchen
-              <ArrowRightIcon className="h-3.5 w-3.5" />
-            </Link>
+            <nav aria-label="Hauptnavigation" className="flex items-center gap-4">
+              <Link
+                href="/books"
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline underline-offset-4 transition-colors"
+              >
+                Alle Bücher durchsuchen
+                <ArrowRightIcon className="h-3.5 w-3.5" />
+              </Link>
+            </nav>
           </div>
         </div>
       </header>
+
+      {/* Hero-Bereich — SEO-Einführungstext */}
+      <section className="bg-accent/20 border-b border-border/40">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="max-w-3xl">
+            <h2 className="font-serif text-2xl sm:text-3xl font-semibold mb-3">
+              Bücher in der richtigen Reihenfolge lesen
+            </h2>
+            <p className="text-muted-foreground leading-relaxed mb-4">
+              Willkommen bei <strong>Buchinventar</strong> — deiner Anlaufstelle, um
+              Buchreihen in der richtigen Reihenfolge zu entdecken. Egal ob Fantasy,
+              Krimi, Thriller oder Sci-Fi: Finde heraus, welches Buch als Nächstes
+              kommt, durchstöbere Bewertungen und entdecke neue Buchempfehlungen.
+              Über 2&nbsp;Millionen Titel — übersichtlich sortiert nach Autor und
+              Erscheinungsjahr.
+            </p>
+            <div className="flex flex-wrap gap-3 text-sm">
+              <Link
+                href="/books"
+                className="inline-flex items-center gap-1.5 bg-primary text-primary-foreground px-4 py-2 rounded-md font-medium hover:bg-primary/90 transition-colors"
+              >
+                <SearchIcon className="h-4 w-4" />
+                Bücher durchsuchen
+              </Link>
+              <Link
+                href="/books?sort=rating"
+                className="inline-flex items-center gap-1.5 bg-card border border-border px-4 py-2 rounded-md font-medium hover:bg-accent transition-colors"
+              >
+                <TrendingUpIcon className="h-4 w-4" />
+                Bestseller &amp; Top-Bewertungen
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Hauptinhalt */}
       <main className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -98,7 +194,7 @@ export default function HomePage() {
           <section className="lg:col-span-3">
             <div className="flex items-baseline justify-between mb-3 px-1">
               <h2 className="font-serif text-lg font-medium">
-                Beliebte Buchreihen
+                Beliebte Buchreihen — Reihenfolge der Bücher
               </h2>
               <span className="text-[11px] text-muted-foreground uppercase tracking-widest">
                 DE / EN
@@ -113,7 +209,7 @@ export default function HomePage() {
           <aside className="lg:col-span-1">
             <div className="lg:sticky lg:top-6">
               <h2 className="font-serif text-lg font-medium mb-3 px-1">
-                Top&#8209;Autoren
+                Top&#8209;Autoren nach Bewertung
               </h2>
               <div className="bg-card rounded border border-border p-3">
                 <div className="grid grid-cols-2 gap-x-3">
@@ -141,10 +237,140 @@ export default function HomePage() {
                   </div>
                 </div>
               </div>
+
+              {/* Kategorien-Links (interne Verlinkung wie orderofbooks.com) */}
+              <div className="mt-4 bg-card rounded border border-border p-3">
+                <h3 className="font-serif text-sm font-medium mb-2">
+                  Bücher nach Genre
+                </h3>
+                <ul className="space-y-1 text-sm">
+                  <li>
+                    <Link href="/books?search=fantasy" className="text-primary hover:underline">
+                      Fantasy Bücher
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/books?search=krimi" className="text-primary hover:underline">
+                      Krimi &amp; Thriller
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/books?search=science+fiction" className="text-primary hover:underline">
+                      Science-Fiction
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/books?search=romance" className="text-primary hover:underline">
+                      Liebesromane
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/books?search=history" className="text-primary hover:underline">
+                      Historische Romane
+                    </Link>
+                  </li>
+                </ul>
+              </div>
             </div>
           </aside>
         </div>
+
+        {/* SEO-Textblock — FAQ-Stil für Long-Tail-Keywords */}
+        <section className="mt-10 max-w-3xl">
+          <h2 className="font-serif text-xl font-semibold mb-4">
+            Häufige Fragen zu Buchreihen &amp; Lesereihenfolge
+          </h2>
+          <div className="space-y-5 text-sm text-muted-foreground leading-relaxed">
+            <div>
+              <h3 className="font-medium text-foreground mb-1">
+                Was ist die richtige Reihenfolge einer Buchreihe?
+              </h3>
+              <p>
+                Die richtige Reihenfolge einer Buchreihe richtet sich nach der
+                Erzählchronologie oder dem Erscheinungsdatum. Bei Buchinventar zeigen
+                wir beide Varianten an — Erscheinungsjahr und erzählerische
+                Reihenfolge —, damit du selbst entscheiden kannst, wie du die Bücher
+                liest.
+              </p>
+            </div>
+            <div>
+              <h3 className="font-medium text-foreground mb-1">
+                Wie finde ich alle Bücher eines Autors?
+              </h3>
+              <p>
+                Nutze die <Link href="/books" className="text-primary hover:underline">Buchsuche</Link>,
+                um nach Autor, Titel oder ISBN zu filtern. Jede Autorenseite zeigt
+                sämtliche Buchreihen in der richtigen Reihenfolge an — inklusive
+                deutscher Übersetzungen und Erscheinungsjahr im DACH-Raum.
+              </p>
+            </div>
+            <div>
+              <h3 className="font-medium text-foreground mb-1">
+                Welche Buchreihen sind 2026 besonders beliebt?
+              </h3>
+              <p>
+                Zu den beliebtesten Buchreihen 2026 im deutschsprachigen Raum zählen
+                Fantasy-Serien wie Harry Potter, Die Tribute von Panem und Das Lied
+                von Eis und Feuer. Unsere Top-Liste oben wird regelmäßig
+                aktualisiert.
+              </p>
+            </div>
+            <div>
+              <h3 className="font-medium text-foreground mb-1">
+                Was bedeutet „DACH-Teilung" bei Buchreihen?
+              </h3>
+              <p>
+                Manche englische Bücher werden im deutschsprachigen Raum
+                (Deutschland, Österreich, Schweiz) in zwei oder mehr Bände aufgeteilt.
+                Diese Teilungen kennzeichnen wir mit dem Teilungssymbol, damit du
+                keinen Band übersiehst.
+              </p>
+            </div>
+          </div>
+        </section>
       </main>
+
+      {/* Footer mit internen Links — SEO-Boost */}
+      <footer className="border-t border-border/60 bg-card mt-8">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 text-sm">
+            <div>
+              <h3 className="font-medium mb-2">Buchinventar</h3>
+              <ul className="space-y-1 text-muted-foreground">
+                <li><Link href="/" className="hover:text-foreground">Startseite</Link></li>
+                <li><Link href="/books" className="hover:text-foreground">Alle Bücher</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-medium mb-2">Beliebte Genres</h3>
+              <ul className="space-y-1 text-muted-foreground">
+                <li><Link href="/books?search=fantasy" className="hover:text-foreground">Fantasy</Link></li>
+                <li><Link href="/books?search=thriller" className="hover:text-foreground">Thriller</Link></li>
+                <li><Link href="/books?search=krimi" className="hover:text-foreground">Krimi</Link></li>
+                <li><Link href="/books?search=romance" className="hover:text-foreground">Liebesromane</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-medium mb-2">Top-Autoren</h3>
+              <ul className="space-y-1 text-muted-foreground">
+                <li><Link href="/books?search=J.K.+Rowling" className="hover:text-foreground">J.K. Rowling</Link></li>
+                <li><Link href="/books?search=George+R.R.+Martin" className="hover:text-foreground">George R.R. Martin</Link></li>
+                <li><Link href="/books?search=J.R.R.+Tolkien" className="hover:text-foreground">J.R.R. Tolkien</Link></li>
+                <li><Link href="/books?search=Brandon+Sanderson" className="hover:text-foreground">Brandon Sanderson</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-medium mb-2">Info</h3>
+              <ul className="space-y-1 text-muted-foreground">
+                <li className="text-xs">© 2026 Buchinventar</li>
+                <li className="text-xs text-muted-foreground/60">
+                  Alle Buchcover und Bewertungen stammen aus öffentlichen Quellen.
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
